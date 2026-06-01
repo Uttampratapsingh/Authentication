@@ -156,3 +156,65 @@ export const logout = async (req,res)=>{
         })
     }
 }
+
+
+export const sendVerifyOtp = async (req,res)=>{
+        console.log("Send Verify OTP endpoint hit");
+
+        try {
+
+            const {userId} = req.body;
+            
+            if(!userId){
+                return res.status(400).json({
+                    message: "Please provide user ID",
+                    success : false,
+                })
+            }
+
+            const user = await userModel.findById(userId);
+
+            if(!user){
+                return res.status(400).json({
+                    message: "User does not exist",
+                    success : false,
+                })    
+            }
+
+            if(user.isAccountVerified){
+                return res.status(400).json({
+                    message: "Account is already verified",
+                    success : false,
+                })    
+            }
+
+            const otp = String(Math.floor(100000 + Math.random() * 900000)); // Generate a 6-digit OTP
+
+            user.verifyOtp = otp;
+            user.otpExpiry = Date.now() + 10 * 60 * 1000; // OTP expires in 10 minutes
+            await user.save();
+            
+            const mailOptions = {
+                from: process.env.SENDER_EMAIL,
+                to: user.email,
+                subject: "Your OTP for Account Verification",
+                text: `Hi ${user.name},\n\nYour OTP for account verification is: ${otp}\n\nThis OTP will expire in 10 minutes.\n\nBest regards,\nThe Team`
+            }
+
+            await transporter.sendMail(mailOptions);
+            
+            return res.status(200).json({
+                message: "OTP sent successfully",
+                success : true,
+            })
+
+            
+        } catch (error) {
+            res.status(500).json({
+                message: `Error in sending OTP : ${error.message}`,
+                success : false,
+            })
+        }
+}
+
+
