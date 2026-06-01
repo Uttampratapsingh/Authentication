@@ -218,3 +218,56 @@ export const sendVerifyOtp = async (req,res)=>{
 }
 
 
+export const verifyOtp = async (req,res)=>{
+    console.log("Verify OTP endpoint hit");
+
+    try {
+        const {userId, otp} = req.body;
+
+        if(!userId || !otp){
+            return res.status(400).json({
+                message: "Please provide user ID and OTP",
+                success : false,
+            })
+        }
+
+        const user = await userModel.findById(userId);
+
+        if(!user){
+            return res.status(400).json({
+                message: "User does not exist",
+                success : false,
+            })    
+        }
+
+        if(user.isAccountVerified){
+            return res.status(400).json({
+                message: "Account is already verified",
+                success : false,
+            })    
+        }
+
+        if(user.verifyOtp !== otp || Date.now() > user.verifyOtpExpireAt){
+            return res.status(400).json({
+                message: "Invalid or expired OTP",
+                success : false,
+            })    
+        }
+
+        user.isAccountVerified = true;
+        user.verifyOtp = '';
+        user.verifyOtpExpireAt = 0;
+        await user.save();
+
+        return res.status(200).json({
+            message: "Account verified successfully",
+            success : true,
+        })
+        
+    } catch (error) {
+        res.status(500).json({
+            message: `Error in verifying OTP : ${error.message}`,
+            success : false,
+        })
+    }
+}
