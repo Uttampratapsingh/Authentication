@@ -40,6 +40,6 @@ const userSchema = new mongoose.Schema({
     },
 })
 
-const userModel =mongoose.model.Auth || mongoose.model('Auth', userSchema); // Check if the model already exists, if not create it
+const userModel =mongoose.model.Auth || mongoose.model('Auth', userSchema); // Check if the model already exists, if not create it and export it
 
 export default userModel;
