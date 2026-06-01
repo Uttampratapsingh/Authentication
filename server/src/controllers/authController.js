@@ -18,6 +18,7 @@ const setAuthCookie = (res, userId) => {
 
 
 export const register = async (req,res)=>{
+    console.log("Register endpoint hit");
     const {name,email,password} = req.body;
 
     if(!name || !email || !password){
@@ -73,6 +74,7 @@ export const register = async (req,res)=>{
 
 
 export const login = async (req,res)=>{
+    console.log("Login endpoint hit");
     const {email,password} = req.body;
 
     if(!email || !password){
@@ -122,6 +124,7 @@ export const login = async (req,res)=>{
 
 
 export const logout = async (req,res)=>{
+    console.log("Logout endpoint hit");
     try {
         res.clearCookie("token", {
             httpOnly: true,
