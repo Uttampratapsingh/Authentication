@@ -218,8 +218,8 @@ export const sendVerifyOtp = async (req,res)=>{
 }
 
 
-export const verifyOtp = async (req,res)=>{
-    console.log("Verify OTP endpoint hit");
+export const verifyEmail = async (req,res)=>{
+    console.log("Verify Email endpoint hit");
 
     try {
         const {userId, otp} = req.body;
