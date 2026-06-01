@@ -1,6 +1,7 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import userModel from "../models/userModel.js";
+import transporter from "../config/nodemailer.js";
 
 const TOKEN_EXPIRES_IN = "2d";
 const COOKIE_MAX_AGE = 2 * 24 * 60 * 60 * 1000;
@@ -50,6 +51,18 @@ export const register = async (req,res)=>{
         //now hash password is stored in database.
         //now we will send the jwt token to the client for authentication and authorization in future requests.
         setAuthCookie(res, newUser._id);
+
+
+        //sending welcome email to the user after successful registration
+        const mailOptions = {
+            from: process.env.SENDER_EMAIL,
+            to: email,
+            subject: "Welcome to our platform!",
+            text: `Hi ${newUser.name},\n\nThank you for registering on our platform. We're excited to have you on board!\n\nBest regards,\nThe Team`
+        }
+
+        // Send the email
+        await transporter.sendMail(mailOptions);
 
         return res.status(201).json({
             message: "User registered successfully",
