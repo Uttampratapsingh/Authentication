@@ -3,6 +3,7 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import 'dotenv/config';
 import connectDB  from './src/config/mongodb.js';
+import authRouter from './src/routes/authRoute.js';
 
 
 const app = express();
@@ -16,9 +17,11 @@ app.use(cors({
 app.use(cookieParser()); // to parse cookies from incoming requests
 
 // Define routes
-app.get('/', (req, res) => {
+app.get('/ping', (req, res) => {
     res.send('Hello from the server!');
 });
+
+app.use('/api/auth',authRouter); // all auth related routes will be prefixed with /api/auth
 
 // Start the server
 app.listen(PORT, () => {
