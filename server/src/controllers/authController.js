@@ -162,8 +162,7 @@ export const sendVerifyOtp = async (req,res)=>{
         console.log("Send Verify OTP endpoint hit");
 
         try {
-
-            const {userId} = req.body;
+            const userId = req.userId;
             
             if(!userId){
                 return res.status(400).json({
@@ -191,7 +190,7 @@ export const sendVerifyOtp = async (req,res)=>{
             const otp = String(Math.floor(100000 + Math.random() * 900000)); // Generate a 6-digit OTP
 
             user.verifyOtp = otp;
-            user.otpExpiry = Date.now() + 10 * 60 * 1000; // OTP expires in 10 minutes
+            user.verifyOtpExpireAt = Date.now() + 10 * 60 * 1000; // OTP expires in 10 minutes
             await user.save();
             
             const mailOptions = {
@@ -222,7 +221,8 @@ export const verifyEmail = async (req,res)=>{
     console.log("Verify Email endpoint hit");
 
     try {
-        const {userId, otp} = req.body;
+        const {otp} = req.body;
+        const userId = req.userId;
 
         if(!userId || !otp){
             return res.status(400).json({
