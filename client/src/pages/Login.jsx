@@ -12,7 +12,7 @@ const Login = () => {
   const [email,setEmail] = useState('');
   const [password,setPassword] = useState('');
   const navigate = useNavigate();
-  const {backendUrl,setIsLoggedIn} = useContext(AppContent);
+  const {backendUrl,setIsLoggedIn,getUserData} = useContext(AppContent);
 
 
   const onSubmitHandler = async(e)=>{
@@ -20,12 +20,15 @@ const Login = () => {
 
     if(state === 'Sign Up'){
       try {
+        console.log("Attempting registration with:", {name,email,password});
         const {data} = await axios.post(`${backendUrl}/api/auth/register`,{
           name,email,password
         });
         if(data?.success){ 
           toast.success(data?.message || "Registration successful");
           setState('Login');
+          console.log("Registration successful, fetching user data...");
+          getUserData();
           setIsLoggedIn(true);
           navigate('/');
         }else{
@@ -37,11 +40,14 @@ const Login = () => {
       }        
     }else{
       try {
+        console.log("Attempting login with:", {email,password});
         const {data} = await axios.post(`${backendUrl}/api/auth/login`,{
           email,password
         });
         if(data?.success){ 
+          console.log("Login successful, fetching user data...");
           toast.success(data?.message || "Login successful");
+          getUserData();
           setIsLoggedIn(true);
           navigate('/');
         }else{
