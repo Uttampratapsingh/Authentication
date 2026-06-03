@@ -5,6 +5,7 @@ import { useContext } from "react";
 import { AppContent} from "../context/AppContext";
 import axios from "axios";
 import {toast} from "react-toastify"
+import { useEffect } from "react";
 
 const Login = () => {
   const [state,setState] = useState('Sign Up');
@@ -13,6 +14,26 @@ const Login = () => {
   const [password,setPassword] = useState('');
   const navigate = useNavigate();
   const {backendUrl,setIsLoggedIn,getUserData} = useContext(AppContent);
+
+  const getAuthState = async()=>{
+    try {
+      const {data} = await axios.get(`${backendUrl}/api/auth/is-auth`);
+      if(data?.success){
+        setIsLoggedIn(true);
+        getUserData();
+      }else{
+        setIsLoggedIn(false);
+      }
+    } catch (error) {
+      setIsLoggedIn(false);
+      toast.error("Error checking authentication status");
+      console.log(error);
+    }
+  }
+
+  useEffect(()=>{
+    getAuthState();
+  },[])
 
 
   const onSubmitHandler = async(e)=>{
@@ -29,7 +50,6 @@ const Login = () => {
           setState('Login');
           console.log("Registration successful, fetching user data...");
           getUserData();
-          setIsLoggedIn(true);
           navigate('/');
         }else{
           toast.error(data?.message || "Registration failed");
@@ -48,7 +68,6 @@ const Login = () => {
           console.log("Login successful, fetching user data...");
           toast.success(data?.message || "Login successful");
           getUserData();
-          setIsLoggedIn(true);
           navigate('/');
         }else{
           toast.error(data?.message || "Login failed");
