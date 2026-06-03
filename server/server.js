@@ -4,6 +4,7 @@ import cookieParser from 'cookie-parser';
 import 'dotenv/config';
 import connectDB  from './src/config/mongodb.js';
 import authRouter from './src/routes/authRoute.js';
+import userRouter from './src/routes/userRoutes.js';
 
 
 const app = express();
@@ -21,7 +22,8 @@ app.get('/ping', (req, res) => {
     res.send('Hello from the server!');
 });
 
-app.use('/api/auth',authRouter); // all auth related routes will be prefixed with /api/auth
+app.use('/api/auth',authRouter);
+app.use('/api/user',userRouter); 
 
 // Start the server
 app.listen(PORT, () => {
