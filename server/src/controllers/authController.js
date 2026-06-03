@@ -271,3 +271,120 @@ export const verifyEmail = async (req,res)=>{
         })
     }
 }
+
+
+export const isAuth = async (req,res)=>{
+        console.log("Is Auth endpoint hit");
+
+        try {
+            res.status(200).json({
+                message: "User is authenticated",
+                success : true,
+            })
+        } catch (error) {
+            res.status(500).json({
+                message: `Error in checking authentication : ${error.message}`,
+                success : false,
+            })  
+        }
+}
+
+export const sendResetOtp = async (req,res)=>{
+    console.log("Send Reset OTP endpoint hit");
+    const {email} = req.body;
+
+    if(!email){
+        return res.status(400).json({
+            message: "Please provide email",
+            success : false,
+        })
+    }
+
+    try {
+        
+        const user = await userModel.findOne({email});
+    
+        if(!user){
+            return res.status(400).json({
+                message: "User does not exist",
+                success : false,
+            })    
+        }
+    
+        const otp = String(Math.floor(100000 + Math.random() * 900000)); // Generate a 6-digit OTP
+    
+        user.resetOtp = otp;
+        user.resetOtpExpireAt = Date.now() + 10 * 60 * 1000; // OTP expires in 10 minutes
+        await user.save();
+        
+        const mailOptions = {
+            from: process.env.SENDER_EMAIL,
+            to: user.email,
+            subject: "Your OTP for Password Reset",
+            text: `Hi ${user.name},\n\nYour OTP for password reset is: ${otp}\n\nThis OTP will expire in 10 minutes.\n\nBest regards,\nThe Team`
+        }
+    
+        await transporter.sendMail(mailOptions);
+        
+        return res.status(200).json({
+            message: "OTP sent successfully",
+            success : true,
+        })
+
+    } catch (error) {
+        res.status(500).json({
+            message: `Error in sending reset OTP : ${error.message}`,
+            success : false,
+        })
+
+    }
+}
+
+
+export const verifyResetOtp = async (req,res)=>{
+    console.log("Verify Reset OTP endpoint hit");
+    const {otp,newPassword,email} = req.body;
+
+    if(!email || !otp || !newPassword){
+        return res.status(400).json({
+            message: "Please provide email, OTP and new password",
+            success : false,
+        })
+    }
+
+    try {
+        
+        const user = await userModel.findOne({email});
+    
+        if(!user){
+            return res.status(400).json({
+                message: "User does not exist",
+                success : false,
+            })    
+        }
+    
+        if(user.resetOtp !== otp || Date.now() > user.resetOtpExpireAt){
+            return res.status(400).json({
+                message: "Invalid or expired OTP",
+                success : false,
+            })    
+        }
+
+        const hashedPassword = await bcrypt.hash(newPassword,10);
+        user.password = hashedPassword;
+        user.resetOtp = '';
+        user.resetOtpExpireAt = 0;
+        await user.save();
+
+        return res.status(200).json({
+            message: "Password reset successfully",
+            success : true,
+        })
+
+    } catch (error) {
+        res.status(500).json({
+            message: `Error in verifying reset OTP : ${error.message}`,
+            success : false,
+        })
+    }
+}   
